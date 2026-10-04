@@ -212,6 +212,7 @@ const CONFIG = {
   // 1) Install the "ntfy" app  2) Subscribe to a topic name  3) Put that exact name here.
   // Make it long and random so nobody else can guess it, e.g. "froyo-ireland-k7x92qpl3m".
   ntfyTopic: "",
+  trackEachStep: true,   // true = a notification for the link opening and for every answer, live. false = only the final yes/no.
   // Optional: opens a pre-filled text TO you on her phone. Your number would be public in the repo, so leaving this empty is safer.
   phone:     "",
   days: ["This Friday", "This Saturday", "Next week", "Surprise me"],
@@ -299,6 +300,7 @@ function renderQuestion() {
 
 function choose(btn, opt) {
   answers.push(opt.t);
+  notifyStep(CONFIG.theirName + " - Q" + (qi + 1) + " of " + total, CONFIG.questions[qi].q + "  ->  " + opt.t);
   document.querySelectorAll("#opts .btn").forEach((b) => { b.disabled = true; });
   btn.classList.add("picked");
   $("react").textContent = opt.r;
@@ -310,6 +312,7 @@ function choose(btn, opt) {
 }
 
 $("start").addEventListener("click", renderQuestion);
+notifyStep(CONFIG.theirName + " opened it", "Someone just opened the link (this also fires when you test it).");
 
 // Confetti (skipped if the person prefers reduced motion)
 function confetti() {
@@ -384,10 +387,18 @@ function rainRoses(count) {
   }
 }
 
+function notifyStep(title, body) { if (CONFIG.trackEachStep) notify(title, body, "speech_balloon"); }
+
 function sayYes() { show("pick"); confetti(); rainRoses(26); }
 
-$("froyo").addEventListener("click", sayYes);
-$("other").addEventListener("click", () => show("twist"));   // the other option leads back to yes
+$("froyo").addEventListener("click", () => {
+  notifyStep(CONFIG.theirName + " - final question", "She picked: " + CONFIG.froyoButton);
+  sayYes();
+});
+$("other").addEventListener("click", () => {
+  notifyStep(CONFIG.theirName + " - final question", "She picked: The other option (plot twist screen)");
+  show("twist");   // the other option leads back to yes
+});
 $("yes2").addEventListener("click", sayYes);
 $("no").addEventListener("click", () => {
   show("nope");
